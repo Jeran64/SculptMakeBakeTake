@@ -21,7 +21,6 @@ shape="S"#[C]ylinder [S]phere [P]lane Pi[L]low
 #https://blender.stackexchange.com/questions/8221/how-can-i-add-uv-coords-to-a-mesh-from-script
 #https://blender.stackexchange.com/questions/2407/how-to-create-a-mesh-programmatically-without-bmesh
 #http://blenderscripting.blogspot.com/2011/06/using-frompydata.html
-#bpy.ops.object.mode_set(mode='EDIT')
 #https://blender.stackexchange.com/questions/9399/add-uv-layer-to-mesh-add-uv-coords-with-python
 #http://web.purplefrog.com/~thoth/blender/python-cookbook/barber-pole.html
 #https://blender.stackexchange.com/questions/3673/why-is-accessing-image-data-so-slow/3678#3678
@@ -29,6 +28,7 @@ shape="S"#[C]ylinder [S]phere [P]lane Pi[L]low
 #https://blender.stackexchange.com/questions/57306/how-to-create-a-custom-ui
 #https://blender.stackexchange.com/questions/100/how-do-i-completely-remove-an-image-from-my-blend-file
 #https://stackoverflow.com/questions/4405787/generating-vertices-for-a-sphere
+#https://gist.github.com/zeffii/9451340
 #define the mesh object that we will be working with.
 ##############################################################
 #_________________make_______________________________________#
@@ -49,13 +49,13 @@ def sculptMake(datapoints):
     ######################################loop through our height and width to define a grid of points.
     deltaTheta=math.pi/(Height) #subtract 1 to account for poles.
     deltaPhi=(math.pi*2)/Width#precalculate our division
-    theta=0
+    theta=0 
     phi=0
     if (datapoints==[]): #if data point sis null, then that means we didnt define it first, this means create a whole new bunch!
         if(shape=="S"):#sphere
-            for ring in range(0,Height):
+            for ring in range(Height):
                 theta=theta+deltaTheta
-                for point in range(0,Width):
+                for point in range(Width):
                     phi=phi+deltaPhi
                     myVerts.append((math.sin(theta)*math.cos(phi),math.sin(theta)*math.sin(phi),math.cos(theta)))#use math to plot a UV Sphere
         elif(shape=="L"):#pillow
@@ -83,7 +83,14 @@ def sculptMake(datapoints):
             myFaces.append([rPoint,rPoint+1,rPoint+1+Width,rPoint+Width])#we add width, which is equal the linear value of the next row of points.
             #wprint ("working face: ")
             #print (x,y,rPoint,rPoint+1,rPoint+1+Width,rPoint+Width)
-            
+    if(shape=="S" or shape=="C"):#if theres a sphere or cylinder
+        for y in range(1,Height):
+            x=Width-1#we are only dealing with the edge here.
+            rPoint=x+(y*Width)#Reference Point. we need to looop through just about most of the points in the list of points. This will convert our x,y coordinates into the linear numberd list.
+            myFaces.append([(y-1)*Width,y*Width,((y+1)*Width)-1,(y*Width)-1])#same as before, but when we modulo to go back to the previous column
+            #wprint ("working face: ")
+            print (x,y,rPoint,[(y-1)*Width,y*Width,((y+1)*Width)-1,(y*Width)-1])
+        
     #build the mesh
     mySculptMesh.from_pydata(myVerts,myEdges,myFaces)
     mySculptMesh.update()
